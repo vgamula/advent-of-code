@@ -1,4 +1,5 @@
 import fileinput
+import json
 import math
 import typing as t
 from dataclasses import dataclass
@@ -173,7 +174,7 @@ def snailfish_number_magnitude(number: SnailfishNumber) -> int:
 
 total = None
 for line in lines:
-    py_numbers_list = eval(line)
+    py_numbers_list = json.loads(line)
     number = make_snailfish_number(py_numbers_list)
     reduce_snailfish_number(number)
 
@@ -191,16 +192,16 @@ max_magnitude = 0
 for i in range(len(lines)):
     for j in range(i + 1, len(lines)):
         # a + b
-        a = make_snailfish_number(eval(lines[i]))
-        b = make_snailfish_number(eval(lines[j]))
+        a = make_snailfish_number(json.loads(lines[i]))
+        b = make_snailfish_number(json.loads(lines[j]))
 
         c = add(a, b)
         reduce_snailfish_number(c)
         max_magnitude = max(max_magnitude, snailfish_number_magnitude(c))
 
         # b + a
-        a = make_snailfish_number(eval(lines[i]))
-        b = make_snailfish_number(eval(lines[j]))
+        a = make_snailfish_number(json.loads(lines[i]))
+        b = make_snailfish_number(json.loads(lines[j]))
 
         c = add(b, a)
         max_magnitude = max(max_magnitude, snailfish_number_magnitude(c))
