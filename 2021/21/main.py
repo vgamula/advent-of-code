@@ -56,11 +56,11 @@ def task1(p1_position, p2_position):
 print("Task 1:", task1(p1_position, p2_position))
 
 
-combinations = []
+combinations = Counter()
 for i in range(1, 4):
     for j in range(1, 4):
         for k in range(1, 4):
-            combinations.append(i + j + k)
+            combinations[i + j + k] += 1
 
 
 def task2(p1_position, p2_position):
@@ -68,7 +68,8 @@ def task2(p1_position, p2_position):
     def count_win_universes(p1, p2, player_to_play):
         wins = Counter()
 
-        for rolls in combinations:
+        for rolls, universes in combinations.items():
+
             p1_tmp = p1
             p2_tmp = p2
             if player_to_play == 1:
@@ -77,11 +78,13 @@ def task2(p1_position, p2_position):
                 p2_tmp = p2_tmp.move_to(rolls)
 
             if p1_tmp.score >= 21:
-                wins[1] += 1
+                wins[1] += universes
             elif p2_tmp.score >= 21:
-                wins[2] += 1
+                wins[2] += universes
             else:
-                wins += count_win_universes(p1_tmp, p2_tmp, 3 - player_to_play)
+                tmp = count_win_universes(p1_tmp, p2_tmp, 3 - player_to_play)
+                wins[1] += tmp[1] * universes
+                wins[2] += tmp[2] * universes
         return wins
 
     return max(count_win_universes(Player(0, p1_position), Player(0, p2_position), 1).values())
