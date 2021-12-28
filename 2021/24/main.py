@@ -92,7 +92,6 @@ def solve(lines, optimizer_fn):
     tmp = reduce(lambda acc, x: acc * 10 + x, inputs)
 
     optimizer_fn(solver, tmp)
-    solver.maximize(tmp)
 
     assert solver.check() == z3.sat
 
