@@ -20,6 +20,12 @@ type CustomFileSystemEntry =
   | CustomDir of DirRecord<CustomFileSystemEntry>
 
 
+let isDir a =
+  match a with
+  | CustomDir(_) -> true
+  | _ -> false
+
+
 let newFile fileName size =
   CustomFile ({
     Name = fileName
@@ -35,10 +41,10 @@ let newEmptyDir dirName =
 
 
 let (|Prefix|_|) (p:string) (s:string) =
-    if s.StartsWith(p) then
-        Some(s.Substring(p.Length))
-    else
-        None
+  if s.StartsWith(p) then
+    Some(s.Substring(p.Length))
+  else
+    None
 
 
 let rec deepInsert (path: string array) dirEntry newEntryName newEntry =
@@ -94,26 +100,36 @@ let rec restoreFileSystem root currentPath lines =
         | _ ->
           root
 
-
-type BoxedMutableValue = {
-  mutable Value: int seq
-}
-
   
-let rec fsEntrySize fsEntry (boxedDirSizes: BoxedMutableValue) =
+let rec fsEntrySize fsEntry =
   match fsEntry with
   | CustomFile({Name = _; SizeInBytes = size}) ->
     size
   | CustomDir({Name = name; Content = content}) ->
     let folderSize =
       content
-      |> Map.map (fun _ entry -> fsEntrySize entry boxedDirSizes)
       |> Map.toSeq
       |> Seq.map snd
+      |> Seq.map fsEntrySize
       |> Seq.sum
     in
-    boxedDirSizes.Value <- Seq.append boxedDirSizes.Value (Seq.singleton folderSize)
     folderSize
+
+
+let rec allFSEntries fsEntry = seq {
+  match fsEntry with
+  | CustomFile(_) ->
+    yield fsEntry
+  | CustomDir({Name = _; Content = content}) ->
+    yield fsEntry
+    yield! (
+      content
+      |> Map.toSeq
+      |> Seq.map snd
+      |> Seq.map allFSEntries
+      |> Seq.concat
+    )
+}
 
   
 [<EntryPoint>]
@@ -121,11 +137,16 @@ let main argv =
     let lines = File.ReadLines("input.txt") |> Seq.skip 1 |> Seq.toList in
     let emptyFS = newEmptyDir "/" in
     let restoredFS = restoreFileSystem emptyFS Array.empty lines in
-    let dirSizes = { Value = Seq.empty }
+
+    let allDirs = restoredFS |> allFSEntries |> Seq.filter isDir in
+    let dirSizes = allDirs |> Seq.map fsEntrySize in
+
     let fsSize = 70000000 in
-    let totalUsedSpace = fsEntrySize restoredFS dirSizes in
+    let totalUsedSpace = Seq.max dirSizes in
     let totalFreeSpace = fsSize - totalUsedSpace in
     let totalSpaceNeeded = 30000000 - totalFreeSpace in
-    dbg (dirSizes.Value |> Seq.filter (fun x -> x <= 100000) |> Seq.sum)
-    dbg (dirSizes.Value |> Seq.filter (fun x -> x >= totalSpaceNeeded ) |> Seq.min)
+
+    dbg (dirSizes |> Seq.filter (fun x -> x <= 100000) |> Seq.sum)
+    dbg (dirSizes |> Seq.filter (fun x -> x >= totalSpaceNeeded ) |> Seq.min)
+
     0
