@@ -1,37 +1,24 @@
-open System
 open System.IO
 
 
 let dbg x = printfn "%A" x
 
 
-type FileRecord = 
-  { Name: string;
-    SizeInBytes: int }
-
-
-type DirRecord<'a> = Map<string, 'a>
-
-
-type CustomFileSystemEntry =
-  | CustomFile of FileRecord
-  | CustomDir of DirRecord<CustomFileSystemEntry>
+type FileSystemEntry =
+  | File of int
+  | Directory of Map<string, FileSystemEntry>
 
 
 let isDir a =
   match a with
-  | CustomDir(_) -> true
+  | Directory(_) -> true
   | _ -> false
 
 
-let newFile fileName size =
-  CustomFile ({
-    Name = fileName
-    SizeInBytes = size
-  })
+let newFile size = File size
 
 
-let emptyDir = CustomDir Map.empty
+let emptyDir = Directory Map.empty
 
 
 let (|Prefix|_|) (p:string) (s:string) =
@@ -43,10 +30,10 @@ let (|Prefix|_|) (p:string) (s:string) =
 
 let rec deepInsert (path: string array) dirEntry newEntryName newEntry =
   match dirEntry with
-  | CustomFile(_) -> dirEntry
-  | CustomDir(content) -> 
+  | File(_) -> dirEntry
+  | Directory(content) -> 
     if Array.length path = 0 then
-      CustomDir (Map.add newEntryName newEntry content)
+      Directory (Map.add newEntryName newEntry content)
     else
       let head = Array.head path in
       let tail = Array.tail path in
@@ -56,7 +43,7 @@ let rec deepInsert (path: string array) dirEntry newEntryName newEntry =
           | None -> emptyDir
       in
       let updatedDir = deepInsert tail innerDirToUpdate newEntryName newEntry in
-      CustomDir (Map.add head updatedDir content)
+      Directory (Map.add head updatedDir content)
 
 
 let butlast a =
@@ -82,7 +69,7 @@ let rec restoreFileSystem root currentPath lines =
       | rest ->
         match rest.Split(' ') with
         | [| size; name |] ->
-          let file = newFile name (int size) in
+          let file = newFile (int size) in
           restoreFileSystem (deepInsert currentPath root name file) currentPath tail
         | _ ->
           root
@@ -90,9 +77,8 @@ let rec restoreFileSystem root currentPath lines =
 
 let rec fsEntrySize fsEntry =
   match fsEntry with
-  | CustomFile({Name = _; SizeInBytes = size}) ->
-    size
-  | CustomDir(content) ->
+  | File(size) -> size
+  | Directory(content) ->
     let dirSize =
       content
       |> Map.toSeq
@@ -105,9 +91,9 @@ let rec fsEntrySize fsEntry =
 
 let rec allFSEntries fsEntry = seq {
   match fsEntry with
-  | CustomFile(_) ->
+  | File(_) ->
     yield fsEntry
-  | CustomDir(content) ->
+  | Directory(content) ->
     yield fsEntry
     yield! (
       content
