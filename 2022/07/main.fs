@@ -10,9 +10,7 @@ type FileRecord =
     SizeInBytes: int }
 
 
-type DirRecord<'a> = 
-  { Name: string;
-    Content: Map<string, 'a> }
+type DirRecord<'a> = Map<string, 'a>
 
 
 type CustomFileSystemEntry =
@@ -33,16 +31,12 @@ let newFile fileName size =
   })
 
 
-let newEmptyDir dirName =
-  CustomDir ({
-    Name = dirName
-    Content = Map.empty
-  })
+let emptyDir = CustomDir Map.empty
 
 
 let (|Prefix|_|) (p:string) (s:string) =
-  if s.StartsWith(p) then
-    Some(s.Substring(p.Length))
+  if s.StartsWith p then
+    Some (s.Substring p.Length)
   else
     None
 
@@ -50,25 +44,19 @@ let (|Prefix|_|) (p:string) (s:string) =
 let rec deepInsert (path: string array) dirEntry newEntryName newEntry =
   match dirEntry with
   | CustomFile(_) -> dirEntry
-  | CustomDir({Name = name; Content = content}) -> 
+  | CustomDir(content) -> 
     if Array.length path = 0 then
-      CustomDir({
-        Name = name;
-        Content = Map.add newEntryName newEntry content
-      })
+      CustomDir (Map.add newEntryName newEntry content)
     else
       let head = Array.head path in
       let tail = Array.tail path in
       let innerDirToUpdate =
         match content |> Map.tryFind head with
           | Some(x) -> x
-          | None -> (newEmptyDir head)
+          | None -> emptyDir
       in
       let updatedDir = deepInsert tail innerDirToUpdate newEntryName newEntry in
-      CustomDir({
-        Name = name;
-        Content = Map.add head updatedDir content
-      })
+      CustomDir (Map.add head updatedDir content)
 
 
 let butlast a =
@@ -85,13 +73,12 @@ let rec restoreFileSystem root currentPath lines =
       match head with
       | Prefix "$ cd .." _ ->
         restoreFileSystem root (butlast currentPath) tail
-      | Prefix "$ cd " nextFolder ->
-        restoreFileSystem root (Array.append currentPath [|nextFolder|]) tail
+      | Prefix "$ cd " nextDir ->
+        restoreFileSystem root (Array.append currentPath [|nextDir|]) tail
       | Prefix "$ ls" _ ->
         restoreFileSystem root currentPath tail
       | Prefix "dir " dirName ->
-        let dir = (newEmptyDir dirName) in
-        restoreFileSystem (deepInsert currentPath root dirName dir) currentPath tail
+        restoreFileSystem (deepInsert currentPath root dirName emptyDir) currentPath tail
       | rest ->
         match rest.Split(' ') with
         | [| size; name |] ->
@@ -100,27 +87,27 @@ let rec restoreFileSystem root currentPath lines =
         | _ ->
           root
 
-  
+
 let rec fsEntrySize fsEntry =
   match fsEntry with
   | CustomFile({Name = _; SizeInBytes = size}) ->
     size
-  | CustomDir({Name = name; Content = content}) ->
-    let folderSize =
+  | CustomDir(content) ->
+    let dirSize =
       content
       |> Map.toSeq
       |> Seq.map snd
       |> Seq.map fsEntrySize
       |> Seq.sum
     in
-    folderSize
+    dirSize
 
 
 let rec allFSEntries fsEntry = seq {
   match fsEntry with
   | CustomFile(_) ->
     yield fsEntry
-  | CustomDir({Name = _; Content = content}) ->
+  | CustomDir(content) ->
     yield fsEntry
     yield! (
       content
@@ -135,8 +122,7 @@ let rec allFSEntries fsEntry = seq {
 [<EntryPoint>]
 let main argv =
     let lines = File.ReadLines("input.txt") |> Seq.skip 1 |> Seq.toList in
-    let emptyFS = newEmptyDir "/" in
-    let restoredFS = restoreFileSystem emptyFS Array.empty lines in
+    let restoredFS = restoreFileSystem emptyDir Array.empty lines in
 
     let allDirs = restoredFS |> allFSEntries |> Seq.filter isDir in
     let dirSizes = allDirs |> Seq.map fsEntrySize in
