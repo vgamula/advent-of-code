@@ -21,58 +21,47 @@ let newFile size = File size
 let emptyDir = Directory Map.empty
 
 
-let (|Prefix|_|) (p:string) (s:string) =
-  if s.StartsWith p then
-    Some (s.Substring p.Length)
-  else
-    None
-
-
-let rec deepInsert (path: string array) dirEntry newEntryName newEntry =
+let rec deepInsert dirEntry (path: string array) newEntryName newEntry =
   match dirEntry with
   | File(_) -> dirEntry
   | Directory(content) -> 
-    if Array.length path = 0 then
+    if Array.isEmpty path then
       Directory (Map.add newEntryName newEntry content)
     else
-      let head = Array.head path in
-      let tail = Array.tail path in
+      let head = Array.head path
+      let tail = Array.tail path
       let innerDirToUpdate =
-        match content |> Map.tryFind head with
-          | Some(x) -> x
-          | None -> emptyDir
-      in
-      let updatedDir = deepInsert tail innerDirToUpdate newEntryName newEntry in
+        match Map.tryFind head content with
+        | Some(x) -> x
+        | None -> emptyDir
+      let updatedDir = deepInsert innerDirToUpdate tail newEntryName newEntry
       Directory (Map.add head updatedDir content)
 
 
 let butlast a =
   let countToKeep =
     (Array.length a) - 1
-  in
   Array.truncate countToKeep a
 
 
-let rec restoreFileSystem root currentPath lines =
+let rec restoreFileSystem root currentPath (lines: string list) =
   match lines with
-    | [] -> root
-    | head::tail ->
-      match head with
-      | Prefix "$ cd .." _ ->
-        restoreFileSystem root (butlast currentPath) tail
-      | Prefix "$ cd " nextDir ->
-        restoreFileSystem root (Array.append currentPath [|nextDir|]) tail
-      | Prefix "$ ls" _ ->
-        restoreFileSystem root currentPath tail
-      | Prefix "dir " dirName ->
-        restoreFileSystem (deepInsert currentPath root dirName emptyDir) currentPath tail
-      | rest ->
-        match rest.Split(' ') with
-        | [| size; name |] ->
-          let file = newFile (int size) in
-          restoreFileSystem (deepInsert currentPath root name file) currentPath tail
-        | _ ->
-          root
+  | [] -> root
+  | head::tail ->
+    match head.Split(" ") |> Array.toList with
+    | ["$"; "cd"; ".."] ->
+      restoreFileSystem root (butlast currentPath) tail
+    | ["$"; "cd"; nextDir] ->
+      restoreFileSystem root (Array.append currentPath [|nextDir|]) tail
+    | ["$"; "ls"] ->
+      restoreFileSystem root currentPath tail
+    | ["dir"; dirName] ->
+      restoreFileSystem (deepInsert root currentPath dirName emptyDir) currentPath tail
+    | [size; name] ->
+      let file = newFile (int size)
+      restoreFileSystem (deepInsert root currentPath name file) currentPath tail
+    | _ ->
+      root
 
 
 let rec fsEntrySize fsEntry =
@@ -85,7 +74,6 @@ let rec fsEntrySize fsEntry =
       |> Seq.map snd
       |> Seq.map fsEntrySize
       |> Seq.sum
-    in
     dirSize
 
 
@@ -104,21 +92,21 @@ let rec allFSEntries fsEntry = seq {
     )
 }
 
-  
+
 [<EntryPoint>]
 let main argv =
-    let lines = File.ReadLines("input.txt") |> Seq.skip 1 |> Seq.toList in
-    let restoredFS = restoreFileSystem emptyDir Array.empty lines in
+  let lines = File.ReadLines("input.txt") |> Seq.skip 1 |> Seq.toList
+  let restoredFS = restoreFileSystem emptyDir Array.empty lines
 
-    let allDirs = restoredFS |> allFSEntries |> Seq.filter isDir in
-    let dirSizes = allDirs |> Seq.map fsEntrySize in
+  let allDirs = restoredFS |> allFSEntries |> Seq.filter isDir
+  let dirSizes = allDirs |> Seq.map fsEntrySize
 
-    let fsSize = 70000000 in
-    let totalUsedSpace = Seq.max dirSizes in
-    let totalFreeSpace = fsSize - totalUsedSpace in
-    let totalSpaceNeeded = 30000000 - totalFreeSpace in
+  let fsSize = 70000000
+  let totalUsedSpace = Seq.max dirSizes
+  let totalFreeSpace = fsSize - totalUsedSpace
+  let totalSpaceNeeded = 30000000 - totalFreeSpace
 
-    dbg (dirSizes |> Seq.filter (fun x -> x <= 100000) |> Seq.sum)
-    dbg (dirSizes |> Seq.filter (fun x -> x >= totalSpaceNeeded ) |> Seq.min)
+  printfn "Task 1: %d" (dirSizes |> Seq.filter (fun x -> x <= 100000) |> Seq.sum)
+  printfn "Task 2: %d" (dirSizes |> Seq.filter (fun x -> x >= totalSpaceNeeded) |> Seq.min)
 
-    0
+  0
