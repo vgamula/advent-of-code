@@ -35,7 +35,7 @@ func displayCRT(crt []string) {
 }
 
 func solve(commands []string) (int, []string) {
-	var crt []string
+	crt := []string{"#"}
 	signalStrength := 0
 
 	currentCycle := 0
