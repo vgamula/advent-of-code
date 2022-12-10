@@ -78,8 +78,8 @@ func main() {
 	fileContent := string(bytesRead)
 	commands := strings.Split(fileContent, "\n")
 
-	xRegisterValue, crt := solve(commands)
-	fmt.Println("Task 1:", xRegisterValue)
+	signalStrength, crt := solve(commands)
+	fmt.Println("Task 1:", signalStrength)
 	fmt.Println("Task 2:")
 	displayCRT(crt)
 }
