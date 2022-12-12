@@ -23,16 +23,16 @@ func positionToCode(pos: (Int, Int)) -> Int {
   return pos.0 * m + pos.1
 }
 
-func neighbors(node: (Int, Int)) -> Array<(Int, Int)> {
-  var res: Array<(Int, Int)> = []
+func neighbors(node: (Int, Int), validator: (String.Element, String.Element) -> Bool) -> [(
+  Int, Int
+)] {
+  var res: [(Int, Int)] = []
   for (di, dj) in zip([-1, 1, 0, 0], [0, 0, 1, -1]) {
     let i = node.0 + di
     let j = node.1 + dj
-    if (0 <= i && i < n && 0 <= j && j < m) {
-      let a = getAsciiCode(s: heights[node.0][node.1])
-      let b = getAsciiCode(s: heights[i][j])
-      if (b - a <= 1) {
-        res.append((i, j))  
+    if 0 <= i && i < n && 0 <= j && j < m {
+      if validator(heights[node.0][node.1], heights[i][j]) {
+        res.append((i, j))
       }
     }
   }
@@ -40,23 +40,26 @@ func neighbors(node: (Int, Int)) -> Array<(Int, Int)> {
 }
 
 func getAsciiCode(s: String.Element) -> Int {
-  if (s == "S") {
+  if s == "S" {
     return Int(Character("a").asciiValue!)
-  } else if (s == "E") {
+  } else if s == "E" {
     return Int(Character("z").asciiValue!)
   } else {
     return Int(s.asciiValue!)
   }
 }
 
-func findShortestPathFromStart(startNode: (Int, Int)) -> Int {
+func findShortestPath(
+  startNode: (Int, Int), end: String.Element,
+  neighborsValidator: (String.Element, String.Element) -> Bool
+) -> Int {
   var dist = Array(repeating: Int.max, count: n * m)
-  var heap = Heap<State>(sort: { $0.cost < $1.cost})
+  var heap = Heap<State>(sort: { $0.cost < $1.cost })
   heap.insert(State(cost: 0, node: startNode))
   dist[positionToCode(pos: startNode)] = 0
 
   while let state = heap.remove(at: 0) {
-    if heights[state.node.0][state.node.1] == "E" {
+    if heights[state.node.0][state.node.1] == end {
       return state.cost
     }
 
@@ -64,7 +67,7 @@ func findShortestPathFromStart(startNode: (Int, Int)) -> Int {
       continue
     }
 
-    for edge in neighbors(node: state.node) {
+    for edge in neighbors(node: state.node, validator: neighborsValidator) {
       let next = State(cost: state.cost + 1, node: edge)
 
       if next.cost < dist[positionToCode(pos: next.node)] {
@@ -81,7 +84,11 @@ func fewestStepsFromStart() -> Int {
     for j in 0..<m {
       if heights[i][j] == "S" {
         let startNode = (i, j)
-        return findShortestPathFromStart(startNode: startNode)
+        return findShortestPath(
+          startNode: startNode, end: "E",
+          neighborsValidator: {
+            getAsciiCode(s: $1) - getAsciiCode(s: $0) <= 1
+          })
       }
     }
   }
@@ -89,20 +96,22 @@ func fewestStepsFromStart() -> Int {
 }
 
 func fewestStepsFromA() -> Int {
-  var minDistance = 9999999
   for i in 0..<n {
     for j in 0..<m {
-      if heights[i][j] == "S" || heights[i][j] == "a" {
+      if heights[i][j] == "E" {
         let startNode = (i, j)
-        let shortestPath = findShortestPathFromStart(startNode: startNode)
-        if (shortestPath != -1 ) {
-          minDistance = min(minDistance, shortestPath)
-        }
+        return findShortestPath(
+          startNode: startNode,
+          end: "a",
+          neighborsValidator: {
+            getAsciiCode(s: $0) - getAsciiCode(s: $1) <= 1
+          }
+        )
       }
     }
   }
-  return minDistance
+  return -1
 }
 
-print("Task 1: ", fewestStepsFromStart())
-print("Task 2: ", fewestStepsFromA())
+print("Task 1:", fewestStepsFromStart())
+print("Task 2:", fewestStepsFromA())
