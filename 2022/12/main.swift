@@ -1,4 +1,4 @@
-// sh -c swiftc -o main main.swift Heap.swift
+// sh -c swiftc -o main main.swift
 import Foundation
 
 let file = "input.txt"
@@ -53,14 +53,15 @@ func findShortestPath(
   startNode: (Int, Int), end: String.Element,
   neighborsValidator: (String.Element, String.Element) -> Bool
 ) -> Int {
+  var minDistance = 9999999
   var dist = Array(repeating: Int.max, count: n * m)
-  var heap = Heap<State>(sort: { $0.cost < $1.cost })
-  heap.insert(State(cost: 0, node: startNode))
+  var queue = [State(cost: 0, node: startNode)]
   dist[positionToCode(pos: startNode)] = 0
 
-  while let state = heap.remove(at: 0) {
-    if heights[state.node.0][state.node.1] == end {
-      return state.cost
+  while queue.count > 0  {
+    let state = queue.removeFirst()
+    if heights[state.node.0][state.node.1] == end && state.cost < minDistance{
+      minDistance = state.cost
     }
 
     guard state.cost <= dist[positionToCode(pos: state.node)] else {
@@ -72,11 +73,11 @@ func findShortestPath(
 
       if next.cost < dist[positionToCode(pos: next.node)] {
         dist[positionToCode(pos: next.node)] = next.cost
-        heap.insert(next)
+        queue.append(next)
       }
     }
   }
-  return -1
+  return minDistance
 }
 
 func fewestStepsFromStart() -> Int {
