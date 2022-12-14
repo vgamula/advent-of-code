@@ -18,20 +18,25 @@
      (let* ([min-len (min (length a) (length b))]
             [compare-list-res
              (foldl (lambda (x y result)
-                      (if (not (= result 0)) result (comparator x y)))
+                      (if (not (= result 0))
+                          result
+                          (comparator x y)))
                     0
                     (take a min-len)
                     (take b min-len))])
        (if (not (= compare-list-res 0))
            compare-list-res
-           (sign (- (length a) (length b)))))]))
+           (sign (- (length a)
+                    (length b)))))]))
 
 (define (pairs-in-order-weight packet-pairs)
   (let ([good-cmp-results-idxs (map (lambda (pair idx)
                                       (let* ([a (first pair)]
                                              [b (second pair)]
                                              [cmp-res (comparator a b)])
-                                        (if (< cmp-res 1) idx 0)))
+                                        (if (< cmp-res 1)
+                                            idx
+                                            0)))
                                     packet-pairs
                                     (range 1 (+ 1 (length packet-pairs))))])
     (foldl + 0 good-cmp-results-idxs)))
@@ -42,7 +47,8 @@
          [packet6 (list (list 6))]
          [all-packets (append all-input-packets (list packet2 packet6))]
          [all-packets-sorted
-          (sort all-packets (lambda (a b) (= -1 (comparator a b))))])
+          (sort all-packets (lambda (a b)
+                              (= -1 (comparator a b))))])
     (* (+ 1 (index-of all-packets-sorted packet2))
        (+ 1 (index-of all-packets-sorted packet6)))))
 
