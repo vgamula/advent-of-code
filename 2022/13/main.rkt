@@ -36,17 +36,21 @@
     (foldl + 0 good-cmp-results-idxs)))
 
 (define (decode-key packet-pairs)
-  (let* ([all-input-packets (apply append packet-pairs)]
-         [packet2 (list (list 2))]
-         [packet6 (list (list 6))]
-         [all-packets (append all-input-packets (list packet2 packet6))]
-         [all-packets-sorted
-          (sort all-packets (lambda (a b)
-                              (< (comparator a b)
-                                 0)))])
-    (* (+ 1 (index-of all-packets-sorted packet2))
-       (+ 1 (index-of all-packets-sorted packet6)))))
-
+  (let* ([less-than-packet (lambda (packet)
+                             (lambda (item)
+                               (< (comparator item packet) 0)))]
+         [all-packets (apply append packet-pairs)]
+         [packet2 '((2))]
+         [packet6 '((6))]
+         [p2idx (+ 1 (length
+                       (filter
+                         (less-than-packet packet2)
+                         all-packets)))]
+         [p6idx (+ 2 (length
+                       (filter
+                         (less-than-packet packet6)
+                         all-packets)))])
+    (* p2idx p6idx)))
 
 (define fname "input.txt")
 
