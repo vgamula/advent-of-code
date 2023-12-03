@@ -1,5 +1,6 @@
 import fileinput
 import re
+from functools import lru_cache
 
 lines = [line.strip() for line in fileinput.input()]
 
@@ -14,6 +15,14 @@ def adjacent_coords(i, j):
                 yield ni, nj
 
 
+@lru_cache
+def numbers_in_row(i):
+    return [
+        (start := m.start(0), end := m.end(0), int(lines[i][start:end]))
+        for m in re.finditer("\d+", lines[i])
+    ]
+
+
 def task1():
     processed = set()
     res = 0
@@ -21,25 +30,22 @@ def task1():
         for j in range(len(lines[0])):
             if lines[i][j].isdigit() or lines[i][j] == ".":
                 continue
-            for di, dj in adjacent_coords(i, j):
-                # lots of duplicate work but I don't care
-                for m in re.finditer("\d+", lines[di]):
-                    start, end = m.start(0), m.end(0)
-                    if start <= dj < end and (di, start, end) not in processed:
-                        processed.add((di, start, end))
-                        res += int(lines[di][start:end])
+            for ni, nj in adjacent_coords(i, j):
+                for start, end, num in numbers_in_row(ni):
+                    if start <= nj < end and (ni, start, end) not in processed:
+                        processed.add((ni, start, end))
+                        res += num
     return res
 
 
 def adjacent_gear_ratio(i, j) -> (int, int):
     processed = set()
     d = 1
-    for di, dj in adjacent_coords(i, j):
-        for m in re.finditer("\d+", lines[di]):
-            start, end = m.start(0), m.end(0)
-            if start <= dj < end and (di, start, end) not in processed:
-                processed.add((di, start, end))
-                d *= int(lines[di][start:end])
+    for ni, nj in adjacent_coords(i, j):
+        for start, end, num in numbers_in_row(ni):
+            if start <= nj < end and (ni, start, end) not in processed:
+                processed.add((ni, start, end))
+                d *= num
     return len(processed), d
 
 
