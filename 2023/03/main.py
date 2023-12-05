@@ -19,7 +19,7 @@ def adjacent_coords(i, j):
 def numbers_in_row(i):
     return [
         (start := m.start(0), end := m.end(0), int(lines[i][start:end]))
-        for m in re.finditer("\d+", lines[i])
+        for m in re.finditer(r"\d+", lines[i])
     ]
 
 
