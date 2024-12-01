@@ -1,0 +1,18 @@
+(lang dune 3.16)
+
+(name ocaml2024)
+
+(generate_opam_files true)
+
+(source
+ (github vgamula/advent-of-code))
+
+(authors "Volodymyr Gamula")
+
+(license MIT)
+
+(package
+ (name ocaml2024)
+ (synopsis "AOC solutions in OCaml")
+ (description "...")
+ (depends ocaml dune core))
