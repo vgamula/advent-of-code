@@ -36,9 +36,10 @@ let task2 =
           | None -> 1
           | Some count -> count + 1))
   in
-  List.fold first_column ~init:0 ~f:(fun acc a ->
+  List.map first_column ~f:(fun a ->
     let freq = Map.find freqs a |> Option.value ~default:0 in
-    (freq * a) + acc)
+    freq * a)
+  |> List.fold ~init:0 ~f:( + )
 ;;
 
 Stdio.printf "Task 2: %d\n" task2
