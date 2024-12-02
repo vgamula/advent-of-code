@@ -2,3 +2,8 @@
  (public_name day01)
  (name day01)
  (libraries common))
+
+(executable
+ (public_name day02)
+ (name day02)
+ (libraries common))
