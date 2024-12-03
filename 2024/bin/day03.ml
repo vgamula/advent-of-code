@@ -9,7 +9,7 @@ let perform_multiplication s =
 ;;
 
 let task1 =
-  let pattern = Re.Pcre.regexp {|mul\((\d{1,3}),\d{1,3}\)|} in
+  let pattern = Re.Pcre.regexp {|mul\(\d{1,3},\d{1,3}\)|} in
   Re.matches pattern data
   |> List.map ~f:perform_multiplication
   |> List.fold ~f:( + ) ~init:0
@@ -23,7 +23,7 @@ type accumulator =
   }
 
 let task2 =
-  let pattern = Re.Pcre.regexp {|do\(\)|don't\(\)|mul\((\d{1,3}),\d{1,3}\)|} in
+  let pattern = Re.Pcre.regexp {|do\(\)|don't\(\)|mul\(\d{1,3},\d{1,3}\)|} in
   let result =
     Re.matches pattern data
     |> List.fold
