@@ -15,4 +15,4 @@
  (name ocaml2024)
  (synopsis "AOC solutions in OCaml")
  (description "...")
- (depends ocaml dune core))
+ (depends ocaml dune core re))
