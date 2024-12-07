@@ -27,3 +27,8 @@
  (public_name day06)
  (name day06)
  (libraries common))
+
+(executable
+ (public_name day07)
+ (name day07)
+ (libraries common))
