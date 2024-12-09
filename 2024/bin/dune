@@ -37,3 +37,8 @@
  (public_name day08)
  (name day08)
  (libraries common))
+
+(executable
+ (public_name day09)
+ (name day09)
+ (libraries common))
