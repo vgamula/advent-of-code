@@ -3,7 +3,6 @@ open Common
 
 let data =
   read_lines_from_stdin ()
-  |> List.filter ~f:(fun line -> not (String.equal (String.strip line) ""))
   |> List.hd_exn
   |> String.to_array
   |> Array.map ~f:(fun c -> Char.to_string c |> Int.of_string)

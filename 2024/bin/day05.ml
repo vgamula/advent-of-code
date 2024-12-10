@@ -1,11 +1,7 @@
 open Core
 open Common
 
-let lines =
-  read_lines_from_stdin ()
-  |> List.map ~f:String.strip
-  |> List.filter ~f:(fun s -> not (String.is_empty s))
-;;
+let lines = read_lines_from_stdin ()
 
 let rules =
   lines
