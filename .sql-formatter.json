@@ -1,0 +1,6 @@
+{
+  "language": "duckdb",
+  "tabWidth": 2,
+  "keywordCase": "lower",
+  "linesBetweenQueries": 2
+}
