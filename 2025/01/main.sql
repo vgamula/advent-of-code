@@ -3,8 +3,9 @@ with recursive
   commands as materialized (
     select
       command,
-      if (command[1] = 'L', -1, 1) * (cast(substring(command, 2) as int) % 100) as ticks,
-      cast(substring(command, 2) as int) // 100 as full_rotations,
+      cast(substring(command, 2) as int) as _num,
+      if (command[1] = 'L', -1, 1) * (_num % 100) as ticks,
+      _num // 100 as full_rotations,
       idx
     from
       -- read_text('input01.txt'),
@@ -14,8 +15,6 @@ with recursive
       ordinality as t (command, idx)
     where
       command <> ''
-    order by
-      idx
   ),
   result (idx) as (
     select
@@ -35,13 +34,6 @@ with recursive
     from
       commands cmd
       join result prev on cmd.idx = prev.idx + 1
-    where
-      cmd.idx <= (
-        select
-          count(*) as count
-        from
-          commands
-      )
   )
 select
   count_if(dial_position = 0) as task1,
