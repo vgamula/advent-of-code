@@ -1,0 +1,33 @@
+R = (join fork (+ fork (range /-) first) (take 1 reverse))
+X = (
+  un parse
+  by (ceil div 2 length)
+  fork (box take) (box drop)
+  couple
+  = by first
+  /+
+  [=2]
+)
+A = (
+  inventory (/+ mul by inventory X)
+  /+
+  $"Task 1: _"
+)
+
+Y = (
+  un parse
+  find on (reverse drop 1 reverse drop 1 self $"__")
+  /+
+  [>0]
+)
+B = (
+  inventory (/+ mul by inventory Y)
+  /+
+  $"Task 2: _"
+)
+
+&fras "example01.txt"
+partition id by != @\n
+partition box by != @,
+inventory (R parse partition box by != @-)
+fork B A
