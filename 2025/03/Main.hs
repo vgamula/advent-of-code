@@ -5,24 +5,24 @@ import Text.Printf
 slice :: [a] -> Int -> Int -> [a]
 slice xs from to = take (to - from) (drop from xs)
 
-maxJoltage :: String -> Int -> [Char] -> Int -> Int -> Int
-maxJoltage bank expectedLength result since left =
-  if expectedLength == length result
+maxJoltage :: String -> [Char] -> Int -> Int -> Int
+maxJoltage bank result since left =
+  if left == 0
     then read result :: Int
     else
       let s = slice bank since (length bank - left + 1)
           maxSoFar = maximum s
           idx = fromJust $ elemIndex maxSoFar s
-       in maxJoltage bank expectedLength (result ++ [maxSoFar]) (since + idx + 1) (left - 1)
+       in maxJoltage bank (result ++ [maxSoFar]) (since + idx + 1) (left - 1)
 
 solve :: Int -> [String] -> Int
 solve expectedLength banks =
-  let poweredBanks = map (\bank -> maxJoltage bank expectedLength [] 0 expectedLength) banks
+  let poweredBanks = map (\bank -> maxJoltage bank [] 0 expectedLength) banks
    in sum poweredBanks
 
 main :: IO ()
 main = do
-  content <- readFile "input01.txt"
+  content <- readFile "example01.txt"
   let banks = lines content
       t1 = solve 2 banks
       t2 = solve 12 banks
