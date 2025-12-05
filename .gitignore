@@ -2,3 +2,4 @@
 .lsp
 .vscode
 input*.txt
+build
