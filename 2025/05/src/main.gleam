@@ -9,8 +9,9 @@ import simplifile
 type Ingredient =
   Int
 
-type Range =
-  #(Ingredient, Ingredient)
+type Range {
+  Range(start: Ingredient, end: Ingredient)
+}
 
 fn parse_input(content: String) -> #(List(Range), List(Ingredient)) {
   let content = string.trim(content)
@@ -23,10 +24,13 @@ fn parse_input(content: String) -> #(List(Range), List(Ingredient)) {
       let assert Ok(#(a, b)) = string.split_once(x, on: "-")
       let assert Ok(a) = int.parse(a)
       let assert Ok(b) = int.parse(b)
-      #(a, b)
+      Range(start: a, end: b)
     })
   let assert Ok(ingredients) =
-    ingredients_str |> string.split("\n") |> list.map(int.parse) |> result.all
+    ingredients_str
+    |> string.split(on: "\n")
+    |> list.map(int.parse)
+    |> result.all
   #(ranges, ingredients)
 }
 
@@ -35,8 +39,12 @@ fn merge_sorted_ranges(merged: List(Range), rest: List(Range)) -> List(Range) {
     _, [] -> list.reverse(merged)
     [], [rh, ..rt] -> merge_sorted_ranges([rh], rt)
     [mh, ..mt], [rh, ..rt] -> {
-      case rh.0 <= mh.1 {
-        True -> merge_sorted_ranges([#(mh.0, int.max(mh.1, rh.1)), ..mt], rt)
+      case rh.start <= mh.end {
+        True ->
+          merge_sorted_ranges(
+            [Range(start: mh.start, end: int.max(mh.end, rh.end)), ..mt],
+            rt,
+          )
         False -> merge_sorted_ranges([rh, ..merged], rt)
       }
     }
@@ -46,29 +54,36 @@ fn merge_sorted_ranges(merged: List(Range), rest: List(Range)) -> List(Range) {
 fn merge_ranges(ranges: List(Range)) -> List(Range) {
   let sorted_ranges =
     list.sort(ranges, fn(a, b) {
-      case int.compare(a.0, b.0) {
-        order.Eq -> int.compare(a.1, b.1)
+      case int.compare(a.start, b.start) {
+        order.Eq -> int.compare(a.end, b.end)
         x -> x
       }
     })
   merge_sorted_ranges([], sorted_ranges)
 }
 
-fn task1(ranges: List(Range), ingredients: List(Ingredient)) -> Int {
+fn count_valid_ingredients(
+  ranges: List(Range),
+  ingredients: List(Ingredient),
+) -> Int {
   ingredients
   |> list.count(fn(ingredient) {
-    ranges |> list.any(fn(a) { a.0 <= ingredient && ingredient <= a.1 })
+    ranges |> list.any(fn(a) { a.start <= ingredient && ingredient <= a.end })
   })
 }
 
-fn task2(ranges: List(Range)) -> Int {
-  list.fold(ranges, 0, fn(acc, x) { acc + x.1 - x.0 + 1 })
+fn total_possible_valid_ingredients(ranges: List(Range)) -> Int {
+  list.map(ranges, fn(x) { x.end - x.start + 1 }) |> int.sum
 }
 
 pub fn main() -> Nil {
   let assert Ok(content) = simplifile.read("example01.txt")
   let #(ranges, ingredients) = parse_input(content)
   let ranges = merge_ranges(ranges)
-  io.println("Task 1: " <> int.to_string(task1(ranges, ingredients)))
-  io.println("Task 2: " <> int.to_string(task2(ranges)))
+  io.println(
+    "Task 1: " <> int.to_string(count_valid_ingredients(ranges, ingredients)),
+  )
+  io.println(
+    "Task 2: " <> int.to_string(total_possible_valid_ingredients(ranges)),
+  )
 }
