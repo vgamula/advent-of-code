@@ -6,13 +6,13 @@ import std/assertions
 
 type operator = (int, int) -> int
 
-proc parse_operator(op: char): operator =
-  if op == '*':
+proc parse_operator(op: string): operator =
+  if op == "*":
     (
       proc(a: int, b: int): int =
         a * b
     )
-  elif op == '+':
+  elif op == "+":
     (
       proc(a: int, b: int): int =
         a + b
@@ -56,7 +56,7 @@ let
   file_contents = readFile("example01.txt")
   lines = file_contents.split("\n")
   nums = lines[0 ..^ 2]
-  operators = findAll(lines[^1], re"\+|\*").map(a => a[0]).map(parse_operator)
+  operators = findAll(lines[^1], re"\+|\*").map(parse_operator)
 
 echo "Task 1: ", task1(nums, operators)
 echo "Task 2: ", task2(nums, operators)
