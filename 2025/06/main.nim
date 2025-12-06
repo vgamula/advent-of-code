@@ -1,27 +1,27 @@
+import std/assertions
 import std/sequtils
 import std/strutils
 import std/re
 import std/sugar
-import std/assertions
 
 type operator = (int, int) -> int
 
-proc parse_operator(op: string): operator =
+proc parseOperator(op: string): operator =
   if op == "*":
     (
-      proc(a: int, b: int): int =
+      proc(a, b: int): int =
         a * b
     )
   elif op == "+":
     (
-      proc(a: int, b: int): int =
+      proc(a, b: int): int =
         a + b
     )
   else:
     raiseAssert("should not happen")
 
 proc task1(nums_list: seq[string], operators: seq[operator]): int =
-  let data = nums_list.map(nums => findAll(nums, re"\d+").map(parseInt))
+  let data = nums_list.map(nums => nums.findAll(re"\d+").map(parseInt))
 
   for j in 0 .. operators.high:
     var tmp: seq[int] = @[]
@@ -41,11 +41,11 @@ proc task2(data: seq[string], operators: seq[operator]): int =
   let nums = transform(data.map(a => toSeq(a.items))).map(a => a.join("").strip())
 
   var grouped_nums: seq[seq[int]] = @[@[]]
-  for i in 0 .. nums.high:
-    if nums[i] == "":
+  for num in nums:
+    if num == "":
       grouped_nums.add(@[])
     else:
-      grouped_nums[^1].add(parseInt(nums[i]))
+      grouped_nums[^1].add(parseInt(num))
 
   assert(grouped_nums.len == operators.len)
 
@@ -56,7 +56,7 @@ let
   file_contents = readFile("example01.txt")
   lines = file_contents.split("\n")
   nums = lines[0 ..^ 2]
-  operators = findAll(lines[^1], re"\+|\*").map(parse_operator)
+  operators = findAll(lines[^1], re"\+|\*").map(parseOperator)
 
 echo "Task 1: ", task1(nums, operators)
 echo "Task 2: ", task2(nums, operators)
