@@ -1,0 +1,3 @@
+[*.fs]
+fsharp_space_before_uppercase_invocation = false
+fsharp_blank_lines_around_nested_multiline_expressions = false
